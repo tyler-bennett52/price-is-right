@@ -6,6 +6,12 @@ const PORT = process.env.PORT || 3006
 const server = new Server();
 const gameShow = server.of('/gameShow');
 let brandNewCar = null;
+let readyCount = 0;
+let guessCount = 0;
+let guess1 = 0;
+let guess2 = 0;
+let response1 = null;
+let response2 = null;
 
 console.log('welcome home');
 
@@ -24,31 +30,46 @@ gameShow.on('connection', (socket) => {
     gameShow.to(room.contestantNum).emit('successful-join');
   });
 
-  setInterval(() => {
-    brandNewCar = { make: 'Ford', price: Math.floor(Math.random() * 10000) + 20000 }
-    gameShow.emit('brand-new-car', brandNewCar)
-  }, 10000);
+  socket.on('ready', () => {
+    readyCount++;
+    if (readyCount === 2) {
+      readyCount = 0;
+      brandNewCar = { make: 'Ford', price: Math.floor(Math.random() * 10000) + 20000 }
+      gameShow.emit('brand-new-car', brandNewCar)
+    }
+  })
+
 
 
   socket.on('guess', (response) => {
-    let guess1 = 0;
-    let guess2 = 0;
-    let response1 = null;
-    let response2 = null;
+    guessCount++;
     if (response.contestantNum === 'contestant1') {
     guess1 = response['Price of Car']
     response1 = response
     } else { 
+      console.log(response1)
       guess2 = response['Price of Car'];
       response2 = response;
      }
-    let winner = closestButNotOver(guess1, guess2, brandNewCar.price)
-    console.log(guess1, guess2, winner, brandNewCar);
-    if (winner === 'contestant1') {
-    } else {
-      console.log(`COME ON DOWN ${response2.name}`)
-      gameShow.to(winner).emit('COME-ON-DOWN', 'you win');
-    }
+
+     if (guessCount === 2) {
+      let winner = closestButNotOver(guess1, guess2, brandNewCar.price)
+      console.log(guess1, guess2, winner, brandNewCar);
+      if (winner === 'contestant1') {
+        console.log(`COME ON DOWN ${response1.name}`)
+        gameShow.to(winner).emit('COME-ON-DOWN', 'you win');
+      } else {
+        console.log(`COME ON DOWN ${response2.name}`)
+        gameShow.to(winner).emit('COME-ON-DOWN', 'you win');
+      } 
+      guess1 = 0;
+      guess2 = 0;
+      guessCount = 0;
+      response1 = null;
+      response2 = null;
+    
+     }
+
 
   })
 })

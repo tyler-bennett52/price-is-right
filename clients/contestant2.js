@@ -13,7 +13,8 @@ let contestantNum = 'contestant2';
 let name = chance.name();
 
 socket.emit('join', { name, contestantNum });
-socket.on('successful-join', (payload) => console.log('So excited to be here Bob'));
+socket.on('successful-join', (payload) => console.log('So excited to be here Bob, my name is', name));
+socket.emit('ready');
 socket.on('COME-ON-DOWN', () => {
   console.log('LET\S WIN SOME MONEY')
 })
