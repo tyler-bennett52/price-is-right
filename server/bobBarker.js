@@ -13,16 +13,13 @@ let guess2 = 0;
 let response1 = null;
 let response2 = null;
 
-console.log('welcome home');
-
-
 
 server.on('connection', (socket) => {
   console.log('Socket connect to Event Server!', socket.id);
 });
 
 gameShow.on('connection', (socket) => {
-  console.log('Welcome to the Price is Right contestant No.', socket.id);
+  console.log('\nWelcome to the Price is Right contestant No.', socket.id);
 
   socket.on('join', room => {
     socket.join(room.contestantNum);
@@ -31,10 +28,11 @@ gameShow.on('connection', (socket) => {
   });
 
   socket.on('ready', () => {
+    const makes = ['Ford', 'Chevy', 'Toyota', 'Honda', 'Volkswagen', 'Hyundai', 'Kia']
     readyCount++;
     if (readyCount === 2) {
       readyCount = 0;
-      brandNewCar = { make: 'Ford', price: Math.floor(Math.random() * 10000) + 20000 }
+      brandNewCar = { make: makes[Math.floor(Math.random() * makes.length)], price: Math.floor(Math.random() * 10000) + 20000 }
       gameShow.emit('brand-new-car', brandNewCar)
     }
   })
@@ -47,19 +45,18 @@ gameShow.on('connection', (socket) => {
     guess1 = response['Price of Car']
     response1 = response
     } else { 
-      console.log(response1)
       guess2 = response['Price of Car'];
       response2 = response;
      }
 
      if (guessCount === 2) {
       let winner = closestButNotOver(guess1, guess2, brandNewCar.price)
-      console.log(guess1, guess2, winner, brandNewCar);
+      console.log('\n',guess1, guess2, winner, brandNewCar);
       if (winner === 'contestant1') {
-        console.log(`COME ON DOWN ${response1.name}`)
+        console.log(`\nCOME ON DOWN ${response1.name}`)
         gameShow.to(winner).emit('COME-ON-DOWN', 'you win');
       } else {
-        console.log(`COME ON DOWN ${response2.name}`)
+        console.log(`\nCOME ON DOWN ${response2.name}`)
         gameShow.to(winner).emit('COME-ON-DOWN', 'you win');
       } 
       guess1 = 0;
